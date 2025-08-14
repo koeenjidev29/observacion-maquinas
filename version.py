@@ -10,13 +10,14 @@ Para actualizar la versión, solo modifica los valores en este archivo.
 VERSION_MAJOR = 1
 VERSION_MINOR = 3
 VERSION_PATCH = 8
+VERSION_BUILD = 1  # 🆕 NUEVO: Versión incremental
 
 # Versión completa
-VERSION = f"{VERSION_MAJOR}.{VERSION_MINOR}.{VERSION_PATCH}"
+VERSION = f"{VERSION_MAJOR}.{VERSION_MINOR}.{VERSION_PATCH}.{VERSION_BUILD}"
 
 # Información adicional
-VERSION_NAME = "Actualización de Documentación"
-RELEASE_DATE = "2024-12-20"
+VERSION_NAME = "Rediseño de Tablas Profesional"  # 🆕 ACTUALIZADO
+RELEASE_DATE = "2024-12-20"  # 🆕 ACTUALIZADO
 AUTHOR = "koeenji dev"
 
 # Función para obtener información completa de versión
@@ -27,6 +28,7 @@ def get_version_info():
         'major': VERSION_MAJOR,
         'minor': VERSION_MINOR,
         'patch': VERSION_PATCH,
+        'build': VERSION_BUILD,  # 🆕 NUEVO
         'name': VERSION_NAME,
         'release_date': RELEASE_DATE,
         'author': AUTHOR

@@ -24,9 +24,12 @@ class MainWindow:
         self.root.geometry("800x600")
         self.root.resizable(True, True)
         
-        # Configurar estilo
+        # Configurar estilo moderno
         self.style = ttk.Style()
         self.style.theme_use('clam')
+        
+        # 🎨 NUEVO: Configurar estilos personalizados para tablas
+        self.configure_modern_table_styles()
         
         # Inicializar gestor de Excel
         self.excel_manager = ExcelManager()
@@ -222,35 +225,86 @@ class MainWindow:
         self.status_bar = ttk.Label(main_frame, text="Listo", relief=tk.SUNKEN, anchor=tk.W)
         self.status_bar.grid(row=2, column=0, sticky=(tk.W, tk.E), pady=(10, 0))
 
+    def configure_modern_table_styles(self):
+        """Configura estilos modernos y profesionales para las tablas"""
+        
+        # 🎨 Estilo para encabezados de tabla
+        self.style.configure("Modern.Treeview.Heading",
+            background="#2c3e50",  # Azul oscuro profesional
+            foreground="white",
+            font=('Segoe UI', 10, 'bold'),
+            relief="flat",
+            borderwidth=1
+        )
+        
+        # 🎨 Estilo para el cuerpo de la tabla
+        self.style.configure("Modern.Treeview",
+            background="#ffffff",
+            foreground="#2c3e50",
+            font=('Segoe UI', 9),
+            fieldbackground="#ffffff",
+            borderwidth=1,
+            relief="solid",
+            rowheight=25  # Altura de fila mejorada
+        )
+        
+        # 🎨 Colores alternados para filas
+        self.style.map("Modern.Treeview",
+            background=[('selected', '#3498db'),  # Azul claro para selección
+                       ('active', '#e3f2fd')],    # Azul muy claro para hover
+            foreground=[('selected', 'white')]
+        )
+        
+        # 🎨 Configurar tags para filas alternadas
+        self.configure_row_tags()
+    
+    def configure_row_tags(self):
+        """Configura tags para filas con colores alternados"""
+        # Se configurará después de crear el Treeview
+        pass
+
     def setup_today_observations_table(self, parent):
-        """Configura la tabla de observaciones del día actual"""
+        """Configura la tabla de observaciones del día actual con diseño moderno"""
         # Frame para la tabla
         table_frame = ttk.Frame(parent)
         table_frame.grid(row=1, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
         table_frame.columnconfigure(0, weight=1)
         table_frame.rowconfigure(0, weight=1)
         
-        # Crear Treeview
+        # 🎨 Crear Treeview con estilo moderno
         columns = ('Hora', 'Línea', 'Máquina', 'Usuario', 'Rol', 'Observación')
-        self.today_tree = ttk.Treeview(table_frame, columns=columns, show='headings', height=15)
+        self.today_tree = ttk.Treeview(table_frame, 
+                                      columns=columns, 
+                                      show='headings', 
+                                      height=15,
+                                      style="Modern.Treeview")  # 🎨 NUEVO: Aplicar estilo moderno
         
-        # Configurar columnas
-        self.today_tree.heading('Hora', text='Hora')
-        self.today_tree.heading('Línea', text='Línea')
-        self.today_tree.heading('Máquina', text='Máquina')
-        self.today_tree.heading('Usuario', text='Usuario')
-        self.today_tree.heading('Rol', text='Rol')
-        self.today_tree.heading('Observación', text='Observación')
+        # 🎨 Configurar tags para filas alternadas
+        self.today_tree.tag_configure('oddrow', background='#f8f9fa')  # Gris muy claro
+        self.today_tree.tag_configure('evenrow', background='#ffffff')  # Blanco
+        self.today_tree.tag_configure('admin_row', background='#fff3cd', foreground='#856404')  # Amarillo suave para admin
+        self.today_tree.tag_configure('mecanico_row', background='#d1ecf1', foreground='#0c5460')  # Azul suave para mecánico
+        self.today_tree.tag_configure('usuario_row', background='#d4edda', foreground='#155724')  # Verde suave para usuario
         
-        # Configurar anchos de columna
-        self.today_tree.column('Hora', width=80, minwidth=80)
-        self.today_tree.column('Línea', width=100, minwidth=80)
-        self.today_tree.column('Máquina', width=120, minwidth=100)
-        self.today_tree.column('Usuario', width=100, minwidth=80)
-        self.today_tree.column('Rol', width=80, minwidth=60)
-        self.today_tree.column('Observación', width=300, minwidth=200)
+        # 🎨 Configurar encabezados con iconos y mejor formato
+        headers_config = {
+            'Hora': {'text': '🕐 Hora', 'width': 90},
+            'Línea': {'text': '🏭 Línea', 'width': 110},
+            'Máquina': {'text': '⚙️ Máquina', 'width': 130},
+            'Usuario': {'text': '👤 Usuario', 'width': 110},
+            'Rol': {'text': '🎭 Rol', 'width': 90},
+            'Observación': {'text': '📝 Observación', 'width': 320}
+        }
         
-        # Scrollbars
+        # Configurar columnas con nuevo diseño
+        for col, config in headers_config.items():
+            self.today_tree.heading(col, text=config['text'])
+            self.today_tree.column(col, 
+                                  width=config['width'], 
+                                  minwidth=config['width']-20,
+                                  anchor='center' if col != 'Observación' else 'w')
+        
+        # 🎨 Scrollbars con estilo mejorado
         v_scrollbar = ttk.Scrollbar(table_frame, orient=tk.VERTICAL, command=self.today_tree.yview)
         h_scrollbar = ttk.Scrollbar(table_frame, orient=tk.HORIZONTAL, command=self.today_tree.xview)
         self.today_tree.configure(yscrollcommand=v_scrollbar.set, xscrollcommand=h_scrollbar.set)
@@ -260,11 +314,26 @@ class MainWindow:
         v_scrollbar.grid(row=0, column=1, sticky=(tk.N, tk.S))
         h_scrollbar.grid(row=1, column=0, sticky=(tk.W, tk.E))
         
+        # 🎨 Efectos de hover mejorados
+        self.today_tree.bind('<Motion>', self.on_table_hover)
+        self.today_tree.bind('<Leave>', self.on_table_leave)
+        
         # Menú contextual
         self.today_tree.bind("<Button-3>", self.show_context_menu)
+    
+    def on_table_hover(self, event):
+        """Efecto hover mejorado para la tabla"""
+        item = self.today_tree.identify_row(event.y)
+        if item:
+            # Cambiar cursor a pointer
+            self.today_tree.configure(cursor="hand2")
+    
+    def on_table_leave(self, event):
+        """Restaurar cursor normal al salir de la tabla"""
+        self.today_tree.configure(cursor="")
 
     def load_today_observations(self):
-        """Carga automáticamente las observaciones del día actual"""
+        """Carga automáticamente las observaciones del día actual con estilos mejorados"""
         try:
             today = get_today_date()
             observations = self.excel_manager.get_observations_by_date(today)
@@ -273,27 +342,55 @@ class MainWindow:
             for item in self.today_tree.get_children():
                 self.today_tree.delete(item)
             
-            # Cargar observaciones
-            for obs in observations:
+            # 🎨 Cargar observaciones con estilos alternados y por rol
+            for i, obs in enumerate(observations):
                 # Obtener rol del usuario
-                user_role = self.get_user_role(obs[5]) if len(obs) > 5 else 'N/A'
+                user_role = self.get_user_role(obs[5]) if len(obs) > 5 else 'usuario'
                 
-                # Insertar en tabla con rol
-                self.today_tree.insert('', 'end', values=(
-                    obs[1],  # Hora
-                    obs[2],  # Línea
-                    obs[3],  # Máquina
-                    obs[5] if len(obs) > 5 else 'N/A',  # Usuario
-                    user_role,  # Rol
-                    obs[4]   # Observación
-                ))
+                # 🎨 Determinar tags para la fila
+                tags = []
+                
+                # Tag para fila alternada
+                if i % 2 == 0:
+                    tags.append('evenrow')
+                else:
+                    tags.append('oddrow')
+                
+                # Tag según el rol del usuario
+                if user_role == 'admin':
+                    tags.append('admin_row')
+                elif user_role == 'mecanico':
+                    tags.append('mecanico_row')
+                else:
+                    tags.append('usuario_row')
+                
+                # 🎨 Formatear datos con iconos según el rol
+                role_icons = {
+                    'admin': '👑',
+                    'mecanico': '🔧',
+                    'usuario': '👤'
+                }
+                
+                formatted_role = f"{role_icons.get(user_role, '👤')} {user_role.title()}"
+                
+                # Insertar en tabla con estilos
+                self.today_tree.insert('', 'end', 
+                                      values=(
+                                          obs[1],  # Hora
+                                          obs[2],  # Línea
+                                          obs[3],  # Máquina
+                                          obs[5] if len(obs) > 5 else 'N/A',  # Usuario
+                                          formatted_role,  # Rol con icono
+                                          obs[4]   # Observación
+                                      ),
+                                      tags=tags)  # 🎨 NUEVO: Aplicar tags
             
             count = len(observations)
-            self.update_status(f"Cargadas {count} observaciones del día {today}")
+            self.update_status(f"✅ Cargadas {count} observaciones del día {today}")
             
         except Exception as e:
             messagebox.showerror("Error", f"Error al cargar observaciones del día: {str(e)}")
-            self.update_status("Error al cargar observaciones")
+            self.update_status("❌ Error al cargar observaciones")
 
     def get_user_role(self, username):
         """Obtiene el rol de un usuario"""
