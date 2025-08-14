@@ -1,0 +1,7 @@
+1|usuario|123|usuario|2024-12-19
+2|mecanico|456|mecanico|2024-12-19
+3|admin|789|admin|2024-12-19
+4|Supervisor|Supervisor|2024-12-19
+5|Mantenimiento|Técnico|2024-12-19
+6|Administrador|Admin|2024-12-19
+7|Julian|Supervisor|2025-08-14
