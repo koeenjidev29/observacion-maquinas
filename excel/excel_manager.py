@@ -53,7 +53,7 @@ class ExcelManager:
     
     def _setup_sheet_headers(self, worksheet):
         """Configura los encabezados de una hoja"""
-        headers = ["Hora", "Línea", "Máquina", "Observación", "Usuario"]
+        headers = ["ID", "Hora", "Línea", "Máquina", "Observación", "Usuario"]
         for col, header in enumerate(headers, 1):
             cell = worksheet.cell(row=1, column=col, value=header)
             cell.font = Font(bold=True, color="FFFFFF")
@@ -61,11 +61,12 @@ class ExcelManager:
             cell.alignment = Alignment(horizontal="center")
         
         # Ajustar ancho de columnas
-        worksheet.column_dimensions['A'].width = 12  # Hora
-        worksheet.column_dimensions['B'].width = 15  # Línea
-        worksheet.column_dimensions['C'].width = 20  # Máquina
-        worksheet.column_dimensions['D'].width = 50  # Observación
-        worksheet.column_dimensions['E'].width = 15  # Usuario
+        worksheet.column_dimensions['A'].width = 8   # ID
+        worksheet.column_dimensions['B'].width = 12  # Hora
+        worksheet.column_dimensions['C'].width = 15  # Línea
+        worksheet.column_dimensions['D'].width = 20  # Máquina
+        worksheet.column_dimensions['E'].width = 50  # Observación
+        worksheet.column_dimensions['F'].width = 15  # Usuario
     
     def sheet_exists(self, sheet_name):
         """Verifica si existe una pestaña con el nombre dado"""
@@ -316,54 +317,62 @@ class ExcelManager:
         except Exception as e:
             raise Exception(f"Error al migrar observaciones: {str(e)}")
     
-    def get_all_observations(self):
-        """Obtiene todas las observaciones de todas las hojas, ordenadas por fecha"""
+    def clear_all_observations(self):
+        """Borra todas las observaciones del archivo Excel"""
+        try:
+            # Crear nuevo workbook
+            self.workbook = Workbook()
+            # Crear hoja con fecha actual
+            today = datetime.now().strftime("%d-%m-%Y")
+            self.workbook.active.title = today
+            self._setup_sheet_headers(self.workbook.active)
+            self.save_workbook()
+            return True
+        except Exception as e:
+            print(f"Error al borrar observaciones: {str(e)}")
+            return False
+    
+    def get_all_observations_with_id(self):
+        """Obtiene todas las observaciones con ID de todas las hojas"""
         all_observations = []
-        
         try:
             for sheet_name in self.workbook.sheetnames:
                 worksheet = self.workbook[sheet_name]
                 
-                # Convertir nombre de hoja a fecha
-                try:
-                    sheet_date = datetime.strptime(sheet_name, "%d-%m-%Y")
-                    date_str = sheet_date.strftime("%Y-%m-%d")
-                except ValueError:
-                    continue  # Saltar hojas que no tienen formato de fecha
-                
-                # Leer todas las observaciones de esta hoja
-                for row_num in range(2, worksheet.max_row + 1):
-                    row_data = [worksheet.cell(row=row_num, column=col).value for col in range(1, 5)]
+                for row in range(2, worksheet.max_row + 1):
+                    # Verificar si hay datos en la fila
+                    if worksheet.cell(row=row, column=2).value:  # Si hay hora
+                        # ✅ Convertir ID a entero, con valor por defecto 0
+                        id_value = worksheet.cell(row=row, column=1).value
+                        try:
+                            observation_id = int(id_value) if id_value is not None else 0
+                        except (ValueError, TypeError):
+                            observation_id = 0
+                        
+                        observation = {
+                            'id': observation_id,  # ✅ Siempre será int
+                            'fecha': sheet_name,
+                            'hora': self._format_time(worksheet.cell(row=row, column=2).value),
+                            'linea': worksheet.cell(row=row, column=3).value or '',
+                            'maquina': worksheet.cell(row=row, column=4).value or '',
+                            'observacion': worksheet.cell(row=row, column=5).value or '',
+                            'usuario': worksheet.cell(row=row, column=6).value or 'Usuario'
+                        }
+                        all_observations.append(observation)
+                # ✅ Ordenar DESPUÉS de procesar todas las hojas
+                all_observations.sort(key=lambda x: x['id'])
+                return all_observations
                     
-                    # Verificar que la fila no esté vacía
-                    if any(cell is not None and str(cell).strip() != "" for cell in row_data):
-                        time_value = row_data[0]
-                        machine = row_data[1] or ""
-                        observation = row_data[2] or ""
-                        user = row_data[3] or ""
-                        
-                        # Formatear la hora
-                        formatted_time = self._format_time(time_value)
-                        
-                        all_observations.append({
-                            'fecha': date_str,
-                            'hora': formatted_time,
-                            'linea': self._extract_line_from_machine(machine),
-                            'maquina': machine,
-                            'observacion': observation,
-                            'usuario': user
-                        })
-            
-            # Ordenar por fecha y hora
-            all_observations.sort(key=lambda x: (x['fecha'], x['hora']))
-            return all_observations
-            
         except Exception as e:
-            raise Exception(f"Error al obtener todas las observaciones: {str(e)}")
-    
+            print(f"Error al obtener observaciones: {str(e)}")
+            return []
+        
     def save_observation(self, date, time, line, machine, observation, user="Usuario"):
-        """Guarda una observación con fecha, hora, línea, máquina, observación y usuario"""
+        """Guarda una observación en el archivo Excel"""
         try:
+            # Obtener ID automático
+            observation_id = self.get_next_id()
+            
             sheet_name = self.get_sheet_name_from_date(date)
             
             # Crear pestaña si no existe
@@ -375,15 +384,16 @@ class ExcelManager:
             # Encontrar la siguiente fila vacía
             next_row = worksheet.max_row + 1
             
-            # Añadir datos (ahora con línea incluida)
-            worksheet.cell(row=next_row, column=1, value=time)
-            worksheet.cell(row=next_row, column=2, value=line)
-            worksheet.cell(row=next_row, column=3, value=machine)
-            worksheet.cell(row=next_row, column=4, value=observation)
-            worksheet.cell(row=next_row, column=5, value=user)
+            # Añadir datos CON ID
+            worksheet.cell(row=next_row, column=1, value=observation_id)  # ID
+            worksheet.cell(row=next_row, column=2, value=time)           # Hora
+            worksheet.cell(row=next_row, column=3, value=line)           # Línea
+            worksheet.cell(row=next_row, column=4, value=machine)        # Máquina
+            worksheet.cell(row=next_row, column=5, value=observation)    # Observación
+            worksheet.cell(row=next_row, column=6, value=user)           # Usuario
             
             # Aplicar formato a las celdas
-            for col in range(1, 6):
+            for col in range(1, 7):
                 cell = worksheet.cell(row=next_row, column=col)
                 cell.alignment = Alignment(horizontal="left", vertical="top", wrap_text=True)
             
@@ -407,3 +417,43 @@ class ExcelManager:
         """Cierra el archivo Excel"""
         if self.workbook:
             self.workbook.close()
+    
+    def get_next_id(self):
+        """Genera el siguiente ID automático consultando todas las observaciones"""
+        try:
+            max_id = 0
+            # Revisar todas las hojas del workbook
+            for sheet_name in self.workbook.sheetnames:
+                worksheet = self.workbook[sheet_name]
+                # Revisar todas las filas (empezar desde la fila 2, saltando headers)
+                for row in range(2, worksheet.max_row + 1):
+                    # Si hay datos en la fila (verificar si hay hora), incrementar contador
+                    if worksheet.cell(row=row, column=1).value:  # Si hay hora
+                        max_id += 1
+            return max_id + 1
+        except Exception as e:
+            print(f"Error al generar ID: {str(e)}")
+            return 1
+    
+    def open_excel_file(self):
+        """Abre el archivo Excel con la aplicación predeterminada del sistema"""
+        try:
+            import subprocess
+            import os
+            
+            if os.path.exists(self.excel_path):
+                # Para Windows
+                if os.name == 'nt':
+                    os.startfile(self.excel_path)
+                # Para macOS
+                elif os.name == 'posix' and os.uname().sysname == 'Darwin':
+                    subprocess.call(['open', self.excel_path])
+                # Para Linux
+                else:
+                    subprocess.call(['xdg-open', self.excel_path])
+                return True
+            else:
+                return False
+        except Exception as e:
+            print(f"Error al abrir Excel: {str(e)}")
+            return False
