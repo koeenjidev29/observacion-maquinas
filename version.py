@@ -1,23 +1,23 @@
 # -*- coding: utf-8 -*-
 """
-Archivo de configuración de versión del Programa de Observación de Máquinas
-
-Este archivo centraliza toda la información de versión del programa.
-Para actualizar la versión, solo modifica los valores en este archivo.
+Sistema de Versiones - Observación de Máquinas
+Autor: koeenji dev
 """
 
-# Información de versión principal
-VERSION_MAJOR = 1
-VERSION_MINOR = 3
+import datetime
+
+# Información de versión
+VERSION_MAJOR = 0
+VERSION_MINOR = 1
 VERSION_PATCH = 8
-VERSION_BUILD = 2  # 🆕 ACTUALIZADO: Nueva versión incremental
+VERSION_BUILD = 4  # Rediseño corporativo completo
 
 # Versión completa
 VERSION = f"{VERSION_MAJOR}.{VERSION_MINOR}.{VERSION_PATCH}.{VERSION_BUILD}"
 
 # Información adicional
-VERSION_NAME = "Sistema de Temas Moderno y Perfil Clicable"  # 🆕 ACTUALIZADO
-RELEASE_DATE = "2024-12-20"  # 🆕 ACTUALIZADO
+VERSION_NAME = "Rediseño Corporativo COPY VALLS"
+RELEASE_DATE = "2024-12-20"
 AUTHOR = "koeenji dev"
 
 def get_version_info():
@@ -36,11 +36,31 @@ def get_version_info():
     }
 
 def get_version_string():
-    """Retorna solo el número de versión"""
+    """
+    Retorna la versión como string simple
+    """
     return VERSION
 
 def get_full_version_string():
-    """Retorna la versión completa con nombre"""
-    return f"{VERSION} - {VERSION_NAME}"
+    """
+    Retorna la versión completa con nombre
+    """
+    return f"{VERSION_NAME} v{VERSION} ({RELEASE_DATE})"
 
+def get_development_info():
+    """
+    Información para desarrolladores
+    """
+    return {
+        'version': VERSION,
+        'build_date': RELEASE_DATE,
+        'author': AUTHOR,
+        'python_version': '3.8+'
+    }
+
+# Variable de compatibilidad
 __version__ = VERSION
+
+if __name__ == "__main__":
+    print(f"Versión: {get_full_version_string()}")
+    print(f"Información completa: {get_version_info()}")
