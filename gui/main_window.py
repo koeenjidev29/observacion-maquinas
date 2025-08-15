@@ -43,12 +43,52 @@ class MainWindow:
         """Establece el callback para logout"""
         self.logout_callback = callback
         
+    def get_screen_dimensions(self):
+        """Obtiene las dimensiones de la pantalla"""
+        screen_width = self.root.winfo_screenwidth()
+        screen_height = self.root.winfo_screenheight()
+        return screen_width, screen_height
+    
+    def calculate_window_size(self, width_percent, height_percent, min_width, min_height, max_width=None, max_height=None):
+        """Calcula el tamaño de ventana basado en porcentajes de pantalla"""
+        screen_width, screen_height = self.get_screen_dimensions()
+        
+        # Calcular tamaño proporcional
+        calc_width = int(screen_width * width_percent)
+        calc_height = int(screen_height * height_percent)
+        
+        # Aplicar límites mínimos
+        calc_width = max(calc_width, min_width)
+        calc_height = max(calc_height, min_height)
+        
+        # Aplicar límites máximos si se especifican
+        if max_width:
+            calc_width = min(calc_width, max_width)
+        if max_height:
+            calc_height = min(calc_height, max_height)
+            
+        return calc_width, calc_height
+    
+    def center_window(self, window, width, height):
+        """Centra una ventana en la pantalla"""
+        screen_width, screen_height = self.get_screen_dimensions()
+        pos_x = (screen_width - width) // 2
+        pos_y = (screen_height - height) // 2
+        window.geometry(f"{width}x{height}+{pos_x}+{pos_y}")
+
     def show(self):
         """Muestra la ventana principal"""
         # Configurar ventana
         self.root.title(f"📊 Observaciones de Máquinas - {get_full_version_string()} - Usuario: {self.user_name} ({self.get_role_display_name(self.user_role)})")
-        self.root.geometry("1200x800")
+        
+        # MAXIMIZAR AL 100% INMEDIATAMENTE
+        self.root.state('zoomed')  # Maximización real en Windows
+        
+        # Configurar tamaño mínimo para cuando se desmaximice
         self.root.minsize(1000, 600)
+        
+        # Permitir redimensionamiento (responsive)
+        self.root.resizable(True, True)
         
         # Configurar el cierre de ventana
         self.root.protocol("WM_DELETE_WINDOW", self.on_window_close)
@@ -300,29 +340,40 @@ class MainWindow:
         """Muestra diálogo para nueva incidencia"""
         dialog = tk.Toplevel(self.root)
         dialog.title("Nueva Observación")
-        dialog.geometry("500x600")
+        
+        # RESTAURAR comportamiento anterior - tamaño fijo y centrado
+        window_width, window_height = self.calculate_window_size(
+            width_percent=0.25,   # Más pequeño (25%)
+            height_percent=0.35,  # Más pequeño (35%)
+            min_width=450,        # Mínimo más pequeño
+            min_height=450,       # Mínimo más pequeño
+            max_width=550,        # Máximo más pequeño
+            max_height=550        # Máximo más pequeño
+        )
+        
+        # Centrar respecto a la ventana principal
+        self.center_window(dialog, window_width, window_height)
+        
+        # BLOQUEAR completamente - NO redimensionable
         dialog.resizable(False, False)
         dialog.transient(self.root)
         dialog.grab_set()
         
-        # Centrar ventana
-        dialog.geometry("+%d+%d" % (self.root.winfo_rootx() + 100, self.root.winfo_rooty() + 50))
-        
-        # Frame principal con padding
-        main_frame = tk.Frame(dialog, bg=self.colors.SURFACE_LIGHT, padx=20, pady=20)
+        # Frame principal con MENOS padding vertical
+        main_frame = tk.Frame(dialog, bg=self.colors.SURFACE_LIGHT, padx=15, pady=10)
         main_frame.pack(fill=tk.BOTH, expand=True)
         
         # Título
         title_label = tk.Label(main_frame, text="📝 Nueva Observación", 
                               font=("Arial", 14, "bold"),
                               fg=self.colors.CORPORATE_GOLD,
-                              bg=self.colors.SURFACE_LIGHT)
+                              bg=self.colors.BACKGROUND_PRIMARY)
         title_label.pack(pady=(0, 20))
         
         # ID automático (solo lectura)
         auto_id = tk.StringVar(value=str(self.excel_manager.get_next_id()))
         tk.Label(main_frame, text="ID:", font=("Arial", 9, "bold"),
-                fg=self.colors.TEXT_PRIMARY, bg=self.colors.SURFACE_LIGHT).pack(anchor=tk.W, pady=(0, 2))
+                fg=self.colors.TEXT_PRIMARY, bg=self.colors.BACKGROUND_PRIMARY).pack(anchor=tk.W, pady=(0, 2))
         id_entry = tk.Entry(main_frame, textvariable=auto_id, state='readonly', width=10, font=("Arial", 9))
         id_entry.pack(anchor=tk.W, pady=(2, 10))
         
@@ -395,9 +446,9 @@ class MainWindow:
                 fg=self.colors.TEXT_PRIMARY,
                 bg=self.colors.SURFACE_LIGHT).pack(anchor=tk.W, pady=(10, 2))
         
-        observation_text = scrolledtext.ScrolledText(main_frame, height=6, width=50,
+        observation_text = scrolledtext.ScrolledText(main_frame, height=4, width=45,  # Reducido de 6 a 4
                                                    font=('Arial', 9))
-        observation_text.pack(pady=(2, 15), fill=tk.BOTH, expand=True)
+        observation_text.pack(pady=(2, 10), fill=tk.BOTH, expand=True)  # Reducido padding
         
         def save_incident():
             try:
@@ -512,12 +563,20 @@ class MainWindow:
         """Muestra ventana con lista completa de observaciones con filtros"""
         list_window = tk.Toplevel(self.root)
         list_window.title("Lista Completa de Observaciones")
-        list_window.geometry("1400x800")
+        
+        # MAXIMIZAR AL 100% INMEDIATAMENTE
+        list_window.state('zoomed')  # Maximización real en Windows
+        
+        # Configurar tamaño mínimo para cuando se desmaximice
+        list_window.minsize(1200, 800)
+        
+        # Permitir redimensionamiento (responsive)
+        list_window.resizable(True, True)
+        
         list_window.transient(self.root)
         list_window.grab_set()
-        
-        # Centrar ventana
-        list_window.geometry("+%d+%d" % (self.root.winfo_rootx() + 50, self.root.winfo_rooty() + 50))
+        list_window.lift()
+        list_window.focus_force()
         
         # Frame principal
         main_frame = tk.Frame(list_window, bg=self.colors.BACKGROUND, padx=20, pady=20)
@@ -1131,21 +1190,30 @@ class MainWindow:
         """Muestra ventana con lista completa de observaciones con filtros"""
         list_window = tk.Toplevel(self.root)
         list_window.title("Lista Completa de Observaciones")
-        list_window.geometry("1200x700")
-        list_window.transient(self.root)
         
-        # Centrar ventana
-        list_window.geometry("+%d+%d" % (self.root.winfo_rootx() + 50, self.root.winfo_rooty() + 50))
+        # MAXIMIZAR AL 100% INMEDIATAMENTE - FORZADO
+        list_window.state('zoomed')  # Maximización real en Windows
+        
+        # FORZAR que no se pueda redimensionar (opcional)
+        list_window.resizable(False, False)
+        
+        # Configurar tamaño mínimo para cuando se desmaximice
+        list_window.minsize(1200, 800)
+        
+        list_window.transient(self.root)
+        list_window.grab_set()
+        list_window.lift()
+        list_window.focus_force()
         
         # Frame principal
-        main_frame = tk.Frame(list_window, bg=self.colors.BACKGROUND_PRIMARY)
-        main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        main_frame = tk.Frame(list_window, bg=self.colors.BACKGROUND_PRIMARY, padx=20, pady=20)
+        main_frame.pack(fill=tk.BOTH, expand=True)
         
         # Título
         title_label = tk.Label(main_frame, text="📋 Lista Completa de Observaciones", 
                               font=("Arial", 16, "bold"),
                               fg=self.colors.CORPORATE_GOLD,
-                              bg=self.colors.SURFACE_LIGHT)
+                              bg=self.colors.BACKGROUND_PRIMARY)
         title_label.pack(pady=(0, 20))
         
         # Frame de filtros

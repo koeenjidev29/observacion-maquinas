@@ -39,16 +39,28 @@ class ExcelManager:
     def get_sheet_name_from_date(self, date):
         """Convierte una fecha en nombre de pestaña"""
         if isinstance(date, str):
-            # Intentar primero formato dd/mm/yyyy
-            try:
-                date = datetime.strptime(date, "%d/%m/%Y")
-            except ValueError:
-                # Si falla, intentar formato yyyy-mm-dd
+            # Lista de formatos de fecha soportados
+            date_formats = [
+                "%d/%m/%Y",    # dd/mm/yyyy
+                "%Y-%m-%d",    # yyyy-mm-dd  
+                "%m/%d/%y",    # m/d/yy (formato americano corto)
+                "%m/%d/%Y",    # m/d/yyyy (formato americano)
+                "%d/%m/%y"     # dd/mm/yy
+            ]
+            
+            for date_format in date_formats:
                 try:
-                    date = datetime.strptime(date, "%Y-%m-%d")
+                    parsed_date = datetime.strptime(date, date_format)
+                    # Si el año es de 2 dígitos y menor a 50, asumimos 20xx
+                    if parsed_date.year < 1950:
+                        parsed_date = parsed_date.replace(year=parsed_date.year + 2000)
+                    return parsed_date.strftime("%d-%m-%Y")
                 except ValueError:
-                    # Si ambos fallan, mostrar error más descriptivo
-                    raise ValueError(f"Formato de fecha no válido: {date}. Use dd/mm/yyyy o yyyy-mm-dd")
+                    continue
+            
+            # Si ningún formato funciona, mostrar error descriptivo
+            raise ValueError(f"Formato de fecha no válido: {date}. Formatos soportados: dd/mm/yyyy, yyyy-mm-dd, m/d/yy, m/d/yyyy")
+        
         return date.strftime("%d-%m-%Y")
     
     def _setup_sheet_headers(self, worksheet):

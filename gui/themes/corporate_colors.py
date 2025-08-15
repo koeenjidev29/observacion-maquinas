@@ -13,10 +13,16 @@ class CorporateColors:
     CORPORATE_DARK_GOLD = "#996515"   # Oro oscuro para contraste
     
     # Fondos y superficies
+    BACKGROUND = "#D4AF37"           # Fondo principal (agregado para compatibilidad)
     BACKGROUND_PRIMARY = "#D4AF37"    # Fondo dorado principal
     BACKGROUND_SECONDARY = "#F4E4BC" # Fondo dorado claro
     SURFACE_LIGHT = "#FFF8DC"        # Superficie clara
     SURFACE_DARK = "#8B7355"         # Superficie oscura
+    
+    # Fondos específicos de secciones (NUEVOS ATRIBUTOS FALTANTES)
+    HEADER_BG = "#B8860B"            # Fondo del header
+    USER_BAR_BG = "#CD7F32"          # Fondo de la barra de usuario
+    FOOTER_BG = "#8B7355"            # Fondo del footer
     
     # Textos
     TEXT_PRIMARY = "#2F2F2F"         # Texto principal oscuro
@@ -31,6 +37,8 @@ class CorporateColors:
     BUTTON_SECONDARY_HOVER = "#DEB887" # Hover botón secundario
     BUTTON_HELP = "#F0E68C"          # Botón de ayuda destacado
     BUTTON_HELP_HOVER = "#FFFF99"    # Hover botón ayuda
+    BUTTON_ADMIN = "#DAA520"         # Botón de administración (NUEVO)
+    BUTTON_DANGER = "#DC143C"        # Botón de peligro/eliminar (NUEVO)
     
     # Bordes y líneas
     BORDER_LIGHT = "#DEB887"         # Borde claro
