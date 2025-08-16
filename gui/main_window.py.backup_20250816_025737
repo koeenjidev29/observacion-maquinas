@@ -480,12 +480,12 @@ class MainWindow:
         
         # RESTAURAR comportamiento anterior - tamaño fijo y centrado
         window_width, window_height = self.calculate_window_size(
-            width_percent=0.35,   # Más pequeño (25%)
-            height_percent=0.45,  # Más pequeño (35%)
-            min_width=500,        # Mínimo más pequeño
-            min_height=550,       # Mínimo más pequeño
-            max_width=650,        # Máximo más pequeño
-            max_height=650        # Máximo más pequeño
+            width_percent=0.25,   # Más pequeño (25%)
+            height_percent=0.35,  # Más pequeño (35%)
+            min_width=450,        # Mínimo más pequeño
+            min_height=450,       # Mínimo más pequeño
+            max_width=550,        # Máximo más pequeño
+            max_height=550        # Máximo más pequeño
         )
         
         # Centrar respecto a la ventana principal

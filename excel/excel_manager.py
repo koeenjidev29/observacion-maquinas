@@ -371,7 +371,7 @@ class ExcelManager:
                             'usuario': worksheet.cell(row=row, column=6).value or 'Usuario'
                         }
                         all_observations.append(observation)
-                # ✅ Ordenar DESPUÉS de procesar todas las hojas
+                # ✅ Mover el ordenamiento y return FUERA del bucle
                 all_observations.sort(key=lambda x: x['id'])
                 return all_observations
                     
