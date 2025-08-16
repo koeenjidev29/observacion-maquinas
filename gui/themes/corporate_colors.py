@@ -55,3 +55,34 @@ class CorporateColors:
     OVERLAY_LIGHT = "rgba(212, 175, 55, 0.1)"  # Overlay claro
     OVERLAY_MEDIUM = "rgba(184, 134, 11, 0.3)" # Overlay medio
     OVERLAY_DARK = "rgba(139, 115, 85, 0.7)"   # Overlay oscuro
+    
+    def __getitem__(self, key):
+        """Permite acceso como diccionario para compatibilidad"""
+        color_mapping = {
+            'bg': self.BACKGROUND,
+            'text': self.TEXT_PRIMARY,
+            'button': self.BUTTON_PRIMARY,
+            'button_text': self.TEXT_ON_GOLD,
+            'secondary': self.BUTTON_SECONDARY,
+            'accent': self.CORPORATE_GOLD,
+            'header_bg': self.HEADER_BG,
+            'user_bar_bg': self.USER_BAR_BG,
+            'footer_bg': self.FOOTER_BG,
+            'success': self.SUCCESS,
+            'warning': self.WARNING,
+            'error': self.ERROR,
+            'info': self.INFO
+        }
+        
+        if key in color_mapping:
+            return color_mapping[key]
+        else:
+            raise KeyError(f"Color key '{key}' not found")
+    
+    def __contains__(self, key):
+        """Permite usar 'in' operator"""
+        color_mapping = {
+            'bg', 'text', 'button', 'button_text', 'secondary', 'accent',
+            'header_bg', 'user_bar_bg', 'footer_bg', 'success', 'warning', 'error', 'info'
+        }
+        return key in color_mapping

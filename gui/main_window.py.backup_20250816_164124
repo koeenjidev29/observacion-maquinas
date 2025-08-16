@@ -365,7 +365,7 @@ class MainWindow:
     def refresh_data(self):
         """Actualiza los datos mostrados"""
         try:
-            self.load_all_observations()
+            self.load_observations()
             messagebox.showinfo("Actualizar", "Datos actualizados correctamente")
         except Exception as e:
             messagebox.showerror("Error", f"Error al actualizar: {e}")
@@ -393,7 +393,7 @@ class MainWindow:
         if result:
             try:
                 self.db_manager.clear_all_observations()
-                self.load_all_observations()
+                self.load_observations()
                 messagebox.showinfo("Éxito", "Todos los datos han sido eliminados")
             except Exception as e:
                 messagebox.showerror("Error", f"Error al limpiar datos: {e}")
